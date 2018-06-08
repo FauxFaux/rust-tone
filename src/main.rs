@@ -63,7 +63,7 @@ fn main() -> Result<(), Error> {
             .button("Play", move |s| {
                 gui_tone(&simple, &s
                     .call_on_id("freq", |edit: &mut EditView| edit.get_content())
-                    .expect("ui element must exist"), s, );
+                    .expect("ui element must exist"), s);
             }),
     );
     siv.run();
