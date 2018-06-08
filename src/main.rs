@@ -6,6 +6,8 @@ extern crate failure;
 extern crate libpulse_binding as pulse;
 extern crate libpulse_simple_binding as psimple;
 
+use std::rc::Rc;
+
 use cast::f32;
 use cast::u8;
 use cursive::traits::Boxable;
@@ -29,19 +31,23 @@ fn main() -> Result<(), Error> {
     };
     ensure!(spec.is_valid(), "spec invalid!");
 
-    let simple = Simple::new(
-        None,                // Use the default server
-        "TunnelApp",         // Our application's name
-        Direction::Playback, // We want a playback stream
-        None,                // Use the default device
-        "Music",             // Description of our stream
-        &spec,               // Our sample format
-        None,                // Use default channel map
-        None,                // Use default buffering attributes
-    ).map_err(pulse)
-        .with_context(|_| format_err!("connecting to server"))?;
+    let simple = Rc::new(
+        Simple::new(
+            None,                // Use the default server
+            "TunnelApp",         // Our application's name
+            Direction::Playback, // We want a playback stream
+            None,                // Use the default device
+            "Music",             // Description of our stream
+            &spec,               // Our sample format
+            None,                // Use default channel map
+            None,                // Use default buffering attributes
+        ).map_err(pulse)
+            .with_context(|_| format_err!("connecting to server"))?,
+    );
 
     let mut siv = cursive::Cursive::new();
+
+    let ew = simple.clone();
 
     siv.add_layer(
         Dialog::new()
@@ -50,19 +56,16 @@ fn main() -> Result<(), Error> {
             .padding((1, 1, 1, 0))
             .content(
                 EditView::new()
+                    .on_submit(move |s, val| gui_tone(&ew, s, val))
                     .with_id("freq")
                     .fixed_width(8),
             )
-            .button("Play", move |s| {
-                // This will run the given closure, *ONLY* if a view with the
-                // correct type and the given ID is found.
-                let name = s.call_on_id("freq", |view: &mut EditView| {
-                    // We can return content from the closure!
-                    view.get_content()
-                }).unwrap();
-
-                // Run the next step
-                gui_tone(&simple, s, &name);
+            .button("Play",  move|s| {
+                // BORROW CHECKER: can't inline this local
+                let val = s
+                    .call_on_id("freq", |edit: &mut EditView| edit.get_content())
+                    .expect("ui element must exist");
+                gui_tone(&simple, s, &val);
             }),
     );
     siv.run();
