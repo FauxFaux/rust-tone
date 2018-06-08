@@ -6,16 +6,12 @@ extern crate failure;
 extern crate libpulse_binding as pulse;
 extern crate libpulse_simple_binding as psimple;
 
-use std::fs;
-use std::io::Write;
-
 use cast::f32;
 use cast::u8;
 use cursive::traits::Boxable;
 use cursive::traits::Identifiable;
 use cursive::views::Dialog;
 use cursive::views::EditView;
-use cursive::views::TextView;
 use failure::Error;
 use failure::ResultExt;
 use psimple::Simple;

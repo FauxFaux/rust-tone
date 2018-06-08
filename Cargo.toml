@@ -5,7 +5,14 @@ authors = ["Chris West (Faux) <git@goeswhere.com>"]
 
 [dependencies]
 cast = "0.2"
-cursive = "0.8"
 failure = "0.1"
 libpulse-binding = "1.2"
 libpulse-simple-binding = "1.2"
+
+[dependencies.cursive]
+version = "0.8"
+default-features = false
+features = ["termion-backend"]
+
+[profile.release]
+lto = true
