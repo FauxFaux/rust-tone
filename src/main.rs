@@ -56,16 +56,14 @@ fn main() -> Result<(), Error> {
             .padding((1, 1, 1, 0))
             .content(
                 EditView::new()
-                    .on_submit(move |s, val| gui_tone(&ew, s, val))
+                    .on_submit(move |s, val| gui_tone(&ew, val, s))
                     .with_id("freq")
                     .fixed_width(8),
             )
-            .button("Play",  move|s| {
-                // BORROW CHECKER: can't inline this local
-                let val = s
+            .button("Play", move |s| {
+                gui_tone(&simple, &s
                     .call_on_id("freq", |edit: &mut EditView| edit.get_content())
-                    .expect("ui element must exist");
-                gui_tone(&simple, s, &val);
+                    .expect("ui element must exist"), s, );
             }),
     );
     siv.run();
@@ -73,7 +71,7 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn gui_tone(s: &Simple, siv: &mut cursive::Cursive, val: &str) {
+fn gui_tone(s: &Simple, val: &str, siv: &mut cursive::Cursive) {
     match val.parse() {
         Ok(freq) => if let Err(e) = tone(s, freq) {
             siv.add_layer(Dialog::info(format!("playback error: {:?}", e)));
