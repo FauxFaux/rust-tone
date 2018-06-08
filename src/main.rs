@@ -38,11 +38,9 @@ fn main() -> Result<(), Error> {
 
     let freq = 4000f32;
 
-    let mut buf = [0u8; 44100];
-    for i in 0..usize(rate) {
-        let val = u8(((f32(i) * freq / f32(rate)).cos() + 1.) * 127.)?;
-        buf[i] = val;
-    }
+    let buf = (0..rate)
+        .map(|i| u8(((f32(i) * freq / f32(rate)).cos() + 1.) * 127.))
+        .collect::<Result<Vec<u8>, cast::Error>>()?;
 
     s.write(&buf)
         .map_err(|e| format_err!("write failed: {:?}", e))?;
