@@ -10,6 +10,7 @@ use std::io::Write;
 use cast::f32;
 use cast::u8;
 use failure::Error;
+use failure::ResultExt;
 
 fn main() -> Result<(), Error> {
     use psimple::Simple;
@@ -33,7 +34,8 @@ fn main() -> Result<(), Error> {
         &spec,               // Our sample format
         None,                // Use default channel map
         None,                // Use default buffering attributes
-    ).map_err(|e| format_err!("simple failed: {:?}", e))?;
+    ).map_err(pulse)
+        .with_context(|_| format_err!("connecting to server"))?;
 
     let freq = 4000f32;
 
@@ -42,9 +44,14 @@ fn main() -> Result<(), Error> {
         .collect::<Result<Vec<u8>, cast::Error>>()?;
 
     s.write(&buf)
-        .map_err(|e| format_err!("write failed: {:?}", e))?;
+        .map_err(pulse)
+        .with_context(|_| format_err!("writing samples"))?;
 
     fs::File::create("a.wav")?.write_all(&buf)?;
 
     Ok(())
+}
+
+fn pulse(err: pulse::error::PAErr) -> Error {
+    format_err!("{}", err)
 }
