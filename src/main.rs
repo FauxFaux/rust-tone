@@ -9,7 +9,6 @@ use std::io::Write;
 
 use cast::f32;
 use cast::u8;
-use cast::usize;
 use failure::Error;
 
 fn main() -> Result<(), Error> {
